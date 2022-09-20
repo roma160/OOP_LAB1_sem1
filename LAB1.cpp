@@ -4,7 +4,7 @@
 #include <map>
 #include <stdio.h>
 
-typedef unsigned int tn;
+typedef unsigned long long tn;
 
 using namespace std;
 
@@ -47,6 +47,8 @@ void printHistogram(const vector<double>& numbers, double start, double stopExcl
 	}
 }
 
+// const tn n, tn X0 = 2147483,
+// const tn m = 2147483648, const tn c = 2147483647, const tn a = 2147483637
 vector<double> method1(
 	const tn n, tn X0 = 42949672,
 	const tn m = 4294967291, const tn c = 4294967279, const tn a = 4294967231)
@@ -54,7 +56,20 @@ vector<double> method1(
 	vector<double> ret(n);
 	for(tn i = 0; i < n; i++)
 	{
-		X0 = ((a * X0) % m + c) % m;
+		X0 = (a * X0 % m + c) % m;
+		ret[i] = (double)X0 / m;
+	}
+	return ret;
+}
+
+vector<double> method2(
+	const tn n, tn X0 = 42949672,
+	const tn m = 4294967291, const tn c = 4294967279, const tn d = 4294967197, const tn a = 4294967231)
+{
+	vector<double> ret(n);
+	for (tn i = 0; i < n; i++)
+	{
+		X0 = (d * (X0 * X0 % m) % m + c) % m;
 		ret[i] = (double)X0 / m;
 	}
 	return ret;
@@ -62,6 +77,6 @@ vector<double> method1(
 
 int main()
 {
-	printList(method1(500));
-	//printHistogram(method1(100, 5), 0, 1);
+	printList(method2(100));
+	printHistogram(method2(100), 0, 1);
 }
