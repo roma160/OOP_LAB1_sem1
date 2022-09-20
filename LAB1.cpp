@@ -47,11 +47,18 @@ void printHistogram(const vector<double>& numbers, double start, double stopExcl
 	}
 }
 
+// METHOD1
+// 31)
 // const tn n, tn X0 = 2147483,
 // const tn m = 2147483648, const tn c = 2147483647, const tn a = 2147483637
+//
+// 32)
+// const tn n, tn X0 = 42949672,
+// const tn m = 4294967296, const tn c = 4294967291, const tn a = 4294967157
+
 vector<double> method1(
 	const tn n, tn X0 = 42949672,
-	const tn m = 4294967291, const tn c = 4294967279, const tn a = 4294967231)
+	const tn m = 4294967296, const tn c = 4294967291, const tn a = 4294967157)
 {
 	vector<double> ret(n);
 	for(tn i = 0; i < n; i++)
@@ -62,14 +69,19 @@ vector<double> method1(
 	return ret;
 }
 
+// METHOD2
+// 32)
+// const tn n, tn X0 = 42949672,
+// const tn m = 4294967296, const tn c = 4294967291, const tn d = 4294967156, const tn a = 4294967157
+
 vector<double> method2(
 	const tn n, tn X0 = 42949672,
-	const tn m = 4294967291, const tn c = 4294967279, const tn d = 4294967197, const tn a = 4294967231)
+	const tn m = 4294967291, const tn c = 4294967279, const tn d = 4294967231, const tn a = 4294967197)
 {
 	vector<double> ret(n);
 	for (tn i = 0; i < n; i++)
 	{
-		X0 = (d * (X0 * X0 % m) % m + c) % m;
+		X0 = ( (d*(X0*X0%m) % m + a*X0%m) % m + c) % m;
 		ret[i] = (double)X0 / m;
 	}
 	return ret;
@@ -78,5 +90,5 @@ vector<double> method2(
 int main()
 {
 	printList(method2(100));
-	printHistogram(method2(100), 0, 1);
+	printHistogram(method2(10000), 0, 1);
 }
