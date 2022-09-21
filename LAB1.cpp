@@ -9,6 +9,9 @@ using namespace std;
 typedef long long tn;
 typedef vector<double>(*method_type)(tn n);
 
+
+// PRINTING METHODS SECTION
+
 void printList(const vector<double>& numbers)
 {
 	constexpr int precision = 4;
@@ -50,8 +53,14 @@ void printHistogram(const vector<double>& numbers, double start, double stopExcl
 }
 
 
+// MOD METHODS SECTION
 
-vector<tn> default_method(int i, tn n);
+struct def_mod_args
+{
+	const tn X0, m;
+	def_mod_args(const tn X0, const tn m) : X0(X0), m(m) {}
+};
+vector<tn> invoke_mod_method(int i, tn n, const def_mod_args* args = nullptr);
 
 vector<double> U(const vector<tn> S, const tn m)
 {
@@ -62,50 +71,62 @@ vector<double> U(const vector<tn> S, const tn m)
 	return ret;
 }
 
-// METHOD1
-// 31)
-// const tn n, tn X0 = 2147483,
-// const tn m = 2147483648, const tn c = 2147483647, const tn a = 2147483637
-//
-// 32)
-// const tn n, tn X0 = 42949672,
-// const tn m = 4294967296, const tn c = 4294967291, const tn a = 4294967157
-//
-// const tn m = 4294967291, const tn c = 4294967279, const tn a = 4294967231
-vector<tn> method1(
-	const tn n, const tn X0 = 42949672,
-	const tn m = 4294967296, const tn c = 4294967291, const tn a = 4294967157)
+struct method1_args : def_mod_args
 {
+	const tn c, a;
+	method1_args(const tn X0, const tn m, const tn c, const tn a) :
+		def_mod_args(X0, m), c(c), a(a) {}
+};
+const method1_args m1_31b{ 2147483, 2147483648, 2147483647, 2147483637 };
+const method1_args m1_32b{ 42949672, 4294967296, 4294967291, 4294967157 };
+const method1_args m1_p{ 42949672, 4294967291, 4294967279, 4294967231 };
+vector<tn> method1(const tn n, const def_mod_args* dargs = &m1_p)
+{
+	const method1_args* args = (const method1_args*) dargs;
 	vector<tn> ret(n);
-	ret[0] = X0;
+	ret[0] = args->X0;
 	for(tn i = 1; i < n; i++)
-		ret[i] = (a * ret[i-1] % m + c) % m;
+		ret[i] = (args->a * ret[i-1] % args->m + args->c) % args->m;
 	return ret;
 }
 
-// METHOD2
-// 32)
-// const tn n, tn X0 = 42949672,
-// const tn m = 4294967296, const tn c = 4294967291, const tn d = 4294967156, const tn a = 4294967157
-vector<tn> method2(
-	const tn n, const tn X0 = 42949672,
-	const tn m = 4294967291, const tn c = 4294967279, const tn d = 4294967231, const tn a = 4294967197)
+struct method2_args: def_mod_args
 {
+	const tn c, d, a;
+	method2_args(const tn X0, const tn m, const tn c, const tn d, const tn a) :
+		def_mod_args(X0, m), c(c), d(d), a(a) {}
+};
+const method2_args m2_32b{ 42949672, 4294967296, 4294967291, 4294967156, 4294967157 };
+const method2_args m2_p{ 42949672, 4294967291, 4294967279, 4294967231, 4294967197 };
+vector<tn> method2(const tn n, const def_mod_args* dargs = &m2_p)
+{
+	const method2_args* args = (const method2_args*) dargs;
 	vector<tn> ret(n);
-	ret[0] = X0;
+	ret[0] = args->X0;
 	for (tn i = 1; i < n; i++)
-		ret[i] = ((d * (ret[i - 1] * ret[i - 1] % m) % m + a * X0 % m) % m + c) % m;
+		ret[i] = (
+			(args->d * (ret[i - 1] * ret[i - 1] % args->m) % args->m + 
+				args->a * args->X0 % args->m) % args->m + 
+				args->c
+			) % args->m;
 	return ret;
 }
 
-vector<tn> method3(
-	const tn n, const tn X0 = 1247437, const tn X1 = 224743647, const tn m = 4294967291)
+struct method3_args : def_mod_args
 {
+	const tn X1;
+	method3_args(const tn X0, const tn X1, const tn m) :
+		def_mod_args(X0, m), X1(X1) {}
+};
+const method3_args m3_p(1247437, 224743647, 4294967291);
+vector<tn> method3(const tn n, const def_mod_args* dargs = &m3_p)
+{
+	const method3_args* args = (const method3_args*) dargs;
 	vector<tn> ret(n);
-	ret[0] = X0;
-	ret[1] = X1;
+	ret[0] = args->X0;
+	ret[1] = args->X1;
 	for (tn i = 2; i < n; i++)
-		ret[i] = (ret[i - 2] + ret[i - 1]) % m;
+		ret[i] = (ret[i - 2] + ret[i - 1]) % args->m;
 	return ret;
 }
 
@@ -126,30 +147,76 @@ tn inverse(tn x, tn m)
 		b += m0;
 	return b;
 }
-// METHOD4
-// 32)
-// const tn n, tn X0 = 42949672,
-// const tn m = 4294967296, const tn c = 4294967290, const tn a = 4294967157
-vector<tn> method4(
-	const tn n, const tn X0 = 42949672,
-	const tn m = 4294967197, const tn c = 4294967291, const tn a = 4294967157)
+struct method4_args: def_mod_args
 {
+	const tn c, a;
+	method4_args(const tn X0, const tn m, const tn c, const tn a) :
+		def_mod_args(X0, m), c(c), a(a) {}
+};
+const method4_args m4_32b(42949672, 4294967296, 4294967290, 4294967157);
+const method4_args m4_p(42949672, 4294967197, 4294967291, 4294967157);
+vector<tn> method4(const tn n, const def_mod_args* dargs = &m4_p)
+{
+	const method4_args* args = (const method4_args*)dargs;
 	vector<tn> ret(n);
-	ret[0] = X0;
+	ret[0] = args->X0;
 	for (tn i = 1; i < n; i++)
-		ret[i] = (a * inverse(ret[i-1], m) % m + c) % m;
+		ret[i] = (args->a * inverse(ret[i-1], args->m) % args->m + args->c) % args->m;
 	return ret;
 }
 
-vector<tn> method5(const tn n, const tn m = 4294967291)
+struct method5_args: def_mod_args
 {
+	const int method_x_i;
+	const def_mod_args* x_args;
+
+	const int method_y_i;
+	const def_mod_args* y_args;
+
+	method5_args(const tn m, const int method_x_i, const def_mod_args* x_args,
+			const int method_y_i, const def_mod_args* y_args) :
+		def_mod_args(-1, m), method_x_i(method_x_i), x_args(x_args), method_y_i(method_y_i), y_args(y_args) {}
+};
+const method5_args m5_p(4294967291, 2, nullptr, 4, nullptr);
+vector<tn> method5(const tn n, const def_mod_args* dargs = &m5_p)
+{
+	const method5_args* args = (const method5_args*)dargs;
 	vector<tn> ret(n);
-	vector<tn> X = default_method(2, n);
-	vector<tn> Y = default_method(4, n);
+	vector<tn> X = invoke_mod_method(args->method_x_i, n, args->x_args);
+	vector<tn> Y = invoke_mod_method(args->method_y_i, n, args->y_args);
 	for (tn i = 0; i < n; i++)
-		ret[i] = (X[i] + (Y[i] > X[i] ? m : 0) - Y[i]) % m;
+		ret[i] = (X[i] + (Y[i] > X[i] ? args->m : 0) - Y[i]) % args->m;
 	return ret;
 }
+
+vector<tn> invoke_mod_method(int i, tn n, const def_mod_args* args)
+{
+
+	switch (i)
+	{
+	case 1:
+		if (args == nullptr) return method1(n);
+		return method1(n, args);
+	case 2:
+		if (args == nullptr) return method2(n);
+		return method2(n, args);
+	case 3:
+		if (args == nullptr) return method3(n);
+		return method3(n, args);
+	case 4:
+		if (args == nullptr) return method4(n);
+		return method4(n, args);
+	case 5:
+		if (args == nullptr) return method5(n);
+		return method5(n, args);
+	default:
+		return vector<tn>();
+	}
+}
+
+
+
+// RND METHODS SECTION
 
 vector<double> method6(vector<double> rnd, const double m = 0, const double sigma = 1)
 {
@@ -163,23 +230,6 @@ vector<double> method6(vector<double> rnd, const double m = 0, const double sigm
 			ret[(i - 1) / D] = m + (ret[(i - 1) / D] - d) * sigma;
 	}
 	return ret;
-}
-
-vector<tn> default_method(const int i, const tn n)
-{
-	switch (i)
-	{
-	case 1:
-		return method1(n);
-	case 2:
-		return method2(n);
-	case 3:
-		return method3(n);
-	case 4:
-		return method4(n);
-	default:
-		return vector<tn>();
-	}
 }
 
 int main()
