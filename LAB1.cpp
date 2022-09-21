@@ -7,7 +7,6 @@
 using namespace std;
 
 typedef long long tn;
-typedef vector<double>(*method_type)(tn n);
 
 
 // PRINTING METHODS SECTION
@@ -62,12 +61,12 @@ struct def_mod_args
 };
 vector<tn> invoke_mod_method(int i, tn n, const def_mod_args* args = nullptr);
 
-vector<double> U(const vector<tn> S, const tn m)
+vector<double> U(const vector<tn> S, const def_mod_args* args)
 {
 	tn n = S.size();
 	vector<double> ret(n);
 	for (tn i = 0; i < n; i++)
-		ret[i] = (double)S[i] / (m-1);
+		ret[i] = (double)S[i] / (args->m-1);
 	return ret;
 }
 
@@ -217,32 +216,50 @@ vector<tn> invoke_mod_method(int i, tn n, const def_mod_args* args)
 
 
 // RND METHODS SECTION
-
-vector<double> method6(vector<double> rnd, const double m = 0, const double sigma = 1)
+struct def_rnd_args
 {
+	const int mod_i;
+	const def_mod_args* mod_args;
+
+	def_rnd_args(const int mod_i, const def_mod_args* mod_args) :
+		mod_i(mod_i), mod_args(mod_args) {}
+};
+
+struct method6_args: def_rnd_args
+{
+	const double m, sigma;
+
+	method6_args(const int mod_i, const def_mod_args* mod_args, const double m, const double sigma):
+		def_rnd_args(mod_i, mod_args), m(m), sigma(sigma) {}
+};
+const method6_args m6_p(4, &m4_p, 0, 1);
+vector<double> method6(const tn n, const def_rnd_args* dargs = &m6_p)
+{
+	const method6_args* args = (const method6_args*)dargs;
 	const int D = 12, d = 6;
-	const tn n = rnd.size();
-	vector<double> ret(n / 12);
-	for(tn i = 1; i <= n; i++)
+	const tn dn = D * n;
+	vector<double> rnd = U(
+		invoke_mod_method(args->mod_i, dn, args->mod_args),
+		args->mod_args
+	);
+
+	vector<double> ret(n);
+	for(tn i = 1; i <= dn; i++)
 	{
 		ret[(i - 1) / D] += rnd[i - 1];
 		if (i % D == 0)
-			ret[(i - 1) / D] = m + (ret[(i - 1) / D] - d) * sigma;
+			ret[(i - 1) / D] = args->m + (ret[(i - 1) / D] - d) * args->sigma;
 	}
 	return ret;
 }
 
 int main()
 {
-	vector<double> r0 = U(method5(7200), 4294967291);
-	vector<double> r = method6(r0);
+	vector<double> r = method6(100);
 
 	printList(r);
 	cout << "\na\n";
-	printHistogram(r, -3, 3, 11);
-	cout << "\na\n";
-	printHistogram(r0, 0, 1);
-	cout << "\na\n";
+	printHistogram(r, -3, 3);
 
 	//printList(method4(100));
 	//printHistogram(method4(10000), 0, 1);
