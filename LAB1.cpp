@@ -24,7 +24,7 @@ void printList(const vector<double>& numbers)
 void printHistogram(const vector<double>& numbers, double start, double stopExcluding, int subdivisionsNum = 10)
 {
 	constexpr int precision = 2;
-	const int width = max(log10(stopExcluding), start < 0 ? log10(-start) : 0) + precision + 2;
+	const int width = max(log10(stopExcluding), start < 0 ? log10(-start) : 0) + precision + 2 + (start < 0);
 
 	cout.setf(ios::fixed, ios::floatfield);
 	cout.precision(precision);
@@ -39,6 +39,7 @@ void printHistogram(const vector<double>& numbers, double start, double stopExcl
 		s = (i * stopExcluding + (subdivisionsNum - i) * start) / subdivisionsNum;
 		e = ((i + 1) * stopExcluding + (subdivisionsNum - i - 1) * start) / subdivisionsNum;
 
+		cout.flush();
 		cout << "[" << setw(width) << s << ";" << setw(width) << e << ")     ";
 
 		for (int j = 0; j < l; j++)
@@ -57,7 +58,7 @@ vector<double> U(const vector<tn> S, const tn m)
 	tn n = S.size();
 	vector<double> ret(n);
 	for (tn i = 0; i < n; i++)
-		ret[i] = (double)S[i] / m;
+		ret[i] = (double)S[i] / (m-1);
 	return ret;
 }
 
@@ -71,7 +72,6 @@ vector<double> U(const vector<tn> S, const tn m)
 // const tn m = 4294967296, const tn c = 4294967291, const tn a = 4294967157
 //
 // const tn m = 4294967291, const tn c = 4294967279, const tn a = 4294967231
-
 vector<tn> method1(
 	const tn n, const tn X0 = 42949672,
 	const tn m = 4294967296, const tn c = 4294967291, const tn a = 4294967157)
@@ -87,7 +87,6 @@ vector<tn> method1(
 // 32)
 // const tn n, tn X0 = 42949672,
 // const tn m = 4294967296, const tn c = 4294967291, const tn d = 4294967156, const tn a = 4294967157
-
 vector<tn> method2(
 	const tn n, const tn X0 = 42949672,
 	const tn m = 4294967291, const tn c = 4294967279, const tn d = 4294967231, const tn a = 4294967197)
@@ -138,7 +137,7 @@ vector<tn> method4(
 	vector<tn> ret(n);
 	ret[0] = X0;
 	for (tn i = 1; i < n; i++)
-		ret[i] = (a * inverse(ret[i], m) % m + c) % m;
+		ret[i] = (a * inverse(ret[i-1], m) % m + c) % m;
 	return ret;
 }
 
@@ -148,7 +147,21 @@ vector<tn> method5(const tn n, const tn m = 4294967291)
 	vector<tn> X = default_method(2, n);
 	vector<tn> Y = default_method(4, n);
 	for (tn i = 0; i < n; i++)
-		ret[i] = (X[i] - Y[i]) % m;
+		ret[i] = (X[i] + (Y[i] > X[i] ? m : 0) - Y[i]) % m;
+	return ret;
+}
+
+vector<double> method6(vector<double> rnd, const double m = 0, const double sigma = 1)
+{
+	const int D = 12, d = 6;
+	const tn n = rnd.size();
+	vector<double> ret(n / 12);
+	for(tn i = 1; i <= n; i++)
+	{
+		ret[(i - 1) / D] += rnd[i - 1];
+		if (i % D == 0)
+			ret[(i - 1) / D] = m + (ret[(i - 1) / D] - d) * sigma;
+	}
 	return ret;
 }
 
@@ -171,8 +184,15 @@ vector<tn> default_method(const int i, const tn n)
 
 int main()
 {
-	printList(U(method5(100), 4294967291));
-	printHistogram(U(method5(100), 4294967291), 0, 1);
+	vector<double> r0 = U(method5(7200), 4294967291);
+	vector<double> r = method6(r0);
+
+	printList(r);
+	cout << "\na\n";
+	printHistogram(r, -3, 3, 11);
+	cout << "\na\n";
+	printHistogram(r0, 0, 1);
+	cout << "\na\n";
 
 	//printList(method4(100));
 	//printHistogram(method4(10000), 0, 1);
