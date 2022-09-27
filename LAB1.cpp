@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 #include <stdio.h>
+#include <cmath>
 
 using namespace std;
 
@@ -56,8 +57,12 @@ void printHistogram(const vector<double>& numbers, double start, double stopExcl
 
 struct def_mod_args
 {
-	const tn X0, m;
+	virtual ~def_mod_args() = default;
+	tn X0, m;
 	def_mod_args(const tn X0, const tn m) : X0(X0), m(m) {}
+
+	virtual def_mod_args* copy() const
+	{ return new def_mod_args(*this); }
 };
 vector<tn> invoke_mod_method(int i, tn n, const def_mod_args* args = nullptr);
 
@@ -75,6 +80,9 @@ struct method1_args : def_mod_args
 	const tn c, a;
 	method1_args(const tn X0, const tn m, const tn c, const tn a) :
 		def_mod_args(X0, m), c(c), a(a) {}
+
+	def_mod_args* copy() const override
+	{ return new method1_args(*this); }
 };
 const method1_args m1_31b{ 2147483, 2147483648, 2147483647, 2147483637 };
 const method1_args m1_32b{ 42949672, 4294967296, 4294967291, 4294967157 };
@@ -94,6 +102,9 @@ struct method2_args: def_mod_args
 	const tn c, d, a;
 	method2_args(const tn X0, const tn m, const tn c, const tn d, const tn a) :
 		def_mod_args(X0, m), c(c), d(d), a(a) {}
+
+	def_mod_args* copy() const override
+	{ return new method2_args(*this); }
 };
 const method2_args m2_32b{ 42949672, 4294967296, 4294967291, 4294967156, 4294967157 };
 const method2_args m2_p{ 42949672, 4294967291, 4294967279, 4294967231, 4294967197 };
@@ -116,6 +127,9 @@ struct method3_args : def_mod_args
 	const tn X1;
 	method3_args(const tn X0, const tn X1, const tn m) :
 		def_mod_args(X0, m), X1(X1) {}
+
+	def_mod_args* copy() const override
+	{ return new method3_args(*this); }
 };
 const method3_args m3_p(1247437, 224743647, 4294967291);
 vector<tn> method3(const tn n, const def_mod_args* dargs = &m3_p)
@@ -151,6 +165,9 @@ struct method4_args: def_mod_args
 	const tn c, a;
 	method4_args(const tn X0, const tn m, const tn c, const tn a) :
 		def_mod_args(X0, m), c(c), a(a) {}
+
+	def_mod_args* copy() const override
+	{ return new method4_args(*this); }
 };
 const method4_args m4_32b(42949672, 4294967296, 4294967290, 4294967157);
 const method4_args m4_p(42949672, 4294967197, 4294967291, 4294967157);
@@ -286,11 +303,81 @@ vector<double> method7(const tn n, const def_rnd_args* dargs = &m7_p)
 	return rnd;
 }
 
+struct method8_args : def_rnd_args
+{
+	const int mod2_i;
+	const def_mod_args* mod2_args;
 
+	method8_args(
+		const int mod1_i, const def_mod_args* mod1_args,
+		const int mod2_i, const def_mod_args* mod2_args) :
+		def_rnd_args(mod1_i, mod1_args), mod2_i(mod2_i), mod2_args(mod2_args) {}
+};
+const method8_args m8_p(1, &m1_p, 4, &m4_p);
+vector<double> method8(const tn n, const def_rnd_args* dargs = &m8_p)
+{
+	const double m = sqrt(8 / exp(1.0));
+	const double e4_4 = 4 * exp(0.25);
+	const double e4_135 = 4 * exp(-1.35);
+	const tn buffer_n = 2 * n;
+
+	method8_args args = *(method8_args*)dargs;
+	def_mod_args* args1 = args.mod_args->copy(), * args2 = args.mod2_args->copy();
+	args.mod_args = args1;
+	args.mod2_args = args2;
+
+	bool restart;
+	vector<double> ret(n);
+	vector<double> u(buffer_n), v(buffer_n);
+	
+	for (tn i = 0; i < n; i++)
+	{
+		double& x = ret[i];
+		restart = true;
+		for (tn j = buffer_n; restart; j++)
+		{
+			restart = false;
+			if (j >= buffer_n)
+			{
+				args1->X0 = u[buffer_n - 1] * args1->m;
+				args2->X0 = v[buffer_n - 1] * args2->m;
+
+				u = U(
+					invoke_mod_method(args.mod_i, buffer_n, args.mod_args),
+					args.mod_args
+				);
+				v = U(
+					invoke_mod_method(args.mod2_i, buffer_n, args.mod2_args),
+					args.mod2_args
+				);
+
+				j = 0;
+			}
+
+			if (abs(u[j]) <= 1e-20)
+			{
+				restart = true;
+				break;
+			}
+			x = (v[j] - 0.5) * m / u[j];
+
+			if (x * x <= 5 - e4_4 * u[j]) continue;
+			if (x * x >= e4_135 / u[j] + 1.4 || x * x > -4 * log(u[j]))
+			{
+				restart = true;
+				break;
+			}
+		}
+	}
+
+	delete args1;
+	delete args2;
+	return ret;
+}
 
 int main()
 {
-	vector<double> r = method7(1000);
+	vector<double> r = method8(1000);
 
 	printList(r);
 
