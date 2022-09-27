@@ -62,13 +62,28 @@ void printHistogram(const vector<double>& numbers, double start, double stopExcl
 struct def_mod_args
 {
 	virtual ~def_mod_args() = default;
+
 	tn X0, m;
+	def_mod_args() = default;
 	def_mod_args(const tn X0, const tn m) : X0(X0), m(m) {}
 
 	virtual def_mod_args* copy() const
 	{ return new def_mod_args(*this); }
+
+	static def_mod_args from_console()
+	{
+		def_mod_args ret;
+		cout << "Enter X0: ";
+		cin >> ret.X0;
+
+		cout << "Enter m: ";
+		cin >> ret.m;
+
+		return move(ret);
+	}
 };
 vector<tn> invoke_mod_method(int i, tn n, const def_mod_args* args = nullptr);
+def_mod_args* mod_method_from_console();
 
 vector<double> U(const vector<tn> S, const def_mod_args* args)
 {
@@ -81,12 +96,27 @@ vector<double> U(const vector<tn> S, const def_mod_args* args)
 
 struct method1_args : def_mod_args
 {
-	const tn c, a;
+	tn c, a;
+	method1_args(def_mod_args&& def) : def_mod_args(def), c(), a() {}
 	method1_args(const tn X0, const tn m, const tn c, const tn a) :
 		def_mod_args(X0, m), c(c), a(a) {}
 
 	def_mod_args* copy() const override
 	{ return new method1_args(*this); }
+
+	static method1_args* from_console()
+	{
+		cout << "Constructing method1 args:\n";
+
+		method1_args* ret = new method1_args(def_mod_args::from_console());
+		cout << "Enter c: ";
+		cin >> ret->c;
+
+		cout << "Enter a: ";
+		cin >> ret->a;
+
+		return ret;
+	}
 };
 const method1_args m1_31b{ 2147483, 2147483648, 2147483647, 2147483637 };
 const method1_args m1_32b{ 42949672, 4294967296, 4294967291, 4294967157 };
@@ -103,12 +133,30 @@ vector<tn> method1(const tn n, const def_mod_args* dargs = &m1_p)
 
 struct method2_args: def_mod_args
 {
-	const tn c, d, a;
+	tn c, d, a;
+	method2_args(def_mod_args&& def): def_mod_args(def), c(), d(), a() {}
 	method2_args(const tn X0, const tn m, const tn c, const tn d, const tn a) :
 		def_mod_args(X0, m), c(c), d(d), a(a) {}
 
 	def_mod_args* copy() const override
 	{ return new method2_args(*this); }
+
+	static method2_args* from_console()
+	{
+		cout << "Constructing method2 args:\n";
+
+		method2_args* ret = new method2_args(def_mod_args::from_console());
+		cout << "Enter c: ";
+		cin >> ret->c;
+
+		cout << "Enter d: ";
+		cin >> ret->d;
+
+		cout << "Enter a: ";
+		cin >> ret->a;
+
+		return ret;
+	}
 };
 const method2_args m2_32b{ 42949672, 4294967296, 4294967291, 4294967156, 4294967157 };
 const method2_args m2_p{ 42949672, 4294967291, 4294967279, 4294967231, 4294967197 };
@@ -128,12 +176,25 @@ vector<tn> method2(const tn n, const def_mod_args* dargs = &m2_p)
 
 struct method3_args : def_mod_args
 {
-	const tn X1;
+	tn X1;
+	method3_args(def_mod_args&& def) : def_mod_args(def), X1() {}
 	method3_args(const tn X0, const tn X1, const tn m) :
 		def_mod_args(X0, m), X1(X1) {}
 
 	def_mod_args* copy() const override
 	{ return new method3_args(*this); }
+
+	static method3_args* from_console()
+	{
+		cout << "Constructing method3 args:\n";
+
+		method3_args* ret = new method3_args(def_mod_args::from_console());
+
+		cout << "Enter X1: ";
+		cin >> ret->X1;
+
+		return ret;
+	}
 };
 const method3_args m3_p(1247437, 224743647, 4294967291);
 vector<tn> method3(const tn n, const def_mod_args* dargs = &m3_p)
@@ -166,12 +227,27 @@ tn inverse(tn x, tn m)
 }
 struct method4_args: def_mod_args
 {
-	const tn c, a;
+	tn c, a;
+	method4_args(def_mod_args&& def) : def_mod_args(def), c(), a() {}
 	method4_args(const tn X0, const tn m, const tn c, const tn a) :
 		def_mod_args(X0, m), c(c), a(a) {}
 
 	def_mod_args* copy() const override
 	{ return new method4_args(*this); }
+
+	static method4_args* from_console()
+	{
+		cout << "Constructing method1 args:\n";
+
+		method4_args* ret = new method4_args(def_mod_args::from_console());
+		cout << "Enter c: ";
+		cin >> ret->c;
+
+		cout << "Enter a: ";
+		cin >> ret->a;
+
+		return ret;
+	}
 };
 const method4_args m4_32b(42949672, 4294967296, 4294967290, 4294967157);
 const method4_args m4_p(42949672, 4294967197, 4294967291, 4294967157);
@@ -185,17 +261,106 @@ vector<tn> method4(const tn n, const def_mod_args* dargs = &m4_p)
 	return ret;
 }
 
+map<int, vector<tuple<string, const def_mod_args*>>> mod_defaults = {
+	{1, {
+		{"m1_31b", &m1_31b},
+		{"m1_32b", &m1_32b},
+		{"m1_p", &m1_p}
+	}},
+	{2, {
+		{"m2_32b", &m2_32b},
+		{"m2_p", &m2_p}
+	}},
+	{3, {
+		{"m3_p", &m3_p}
+	}},
+	{2, {
+		{"m4_32b", &m4_32b},
+		{"m4_p", &m4_p}
+	}},
+};
+
+void mod_method_from_console(int& i, const def_mod_args*& args)
+{
+	i = 0;
+	while (i > 4 || i < 1)
+	{
+		cout << "Enter index of method (from 1 to 4): ";
+		cin >> i;
+	}
+
+	const vector<tuple<string, const def_mod_args*>>& defaults = mod_defaults[i];
+
+	char buff;
+	int di = -1;
+	while (di < 0 || di > defaults.size()) {
+		cout << "Chose one of the presets, or enter own numbers:\n";
+		for (int i = 0; i < defaults.size() - 1; i++)
+			cout << i + 1 << ") " << std::get<0>(defaults[i]) << "\n";
+		cout << defaults.size() << " or d) " << std::get<0>(defaults[defaults.size() - 1]) << "\n";
+		cout << "o) Own numbers\n:";
+		cin >> buff;
+		if (buff == 'd') di = defaults.size() - 1;
+		else if (buff == 'o') di = defaults.size();
+		else di = buff - '1';
+	}
+
+	if (di == defaults.size())
+	{
+		switch (i)
+		{
+		case 1:
+			args = method1_args::from_console();
+			break;
+		case 2:
+			args = method2_args::from_console();
+			break;
+		case 3:
+			args = method3_args::from_console();
+			break;
+		case 4:
+			args = method4_args::from_console();
+			break;
+		default:
+			args = nullptr;
+			break;
+		}
+	}
+	else args = std::get<1>(defaults[i]);
+}
+
 struct method5_args: def_mod_args
 {
-	const int method_x_i;
+	int method_x_i;
 	const def_mod_args* x_args;
 
-	const int method_y_i;
+	int method_y_i;
 	const def_mod_args* y_args;
 
+	method5_args(def_mod_args&& def) : def_mod_args(def), method_x_i(), x_args(), method_y_i(), y_args() {}
 	method5_args(const tn m, const int method_x_i, const def_mod_args* x_args,
 			const int method_y_i, const def_mod_args* y_args) :
 		def_mod_args(-1, m), method_x_i(method_x_i), x_args(x_args), method_y_i(method_y_i), y_args(y_args) {}
+
+	~method5_args()
+	{
+		delete x_args;
+		delete y_args;
+	}
+
+	static method5_args* from_console()
+	{
+		cout << "Constructing method5 args:\n";
+
+		method5_args* ret = new method5_args(def_mod_args::from_console());
+		cout << "Enter method x:\n";
+		mod_method_from_console(ret->method_x_i, ret->x_args);
+
+		cout << "Enter method y:\n";
+		mod_method_from_console(ret->method_y_i, ret->y_args);
+
+		return ret;
+	}
 };
 const method5_args m5_p(4294967291, 2, nullptr, 4, nullptr);
 vector<tn> method5(const tn n, const def_mod_args* dargs = &m5_p)
