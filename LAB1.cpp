@@ -253,14 +253,47 @@ vector<double> method6(const tn n, const def_rnd_args* dargs = &m6_p)
 	return ret;
 }
 
+double sign(double n)
+{
+	if (n < 0) return -1;
+	if (n > 0) return 1;
+	return 0;
+}
+const def_rnd_args m7_p(4, &m4_p);
+vector<double> method7(const tn n, const def_rnd_args* dargs = &m7_p)
+{
+	const tn N = n / 2 + n % 2;
+	const method6_args* args = (const method6_args*)dargs;
+	vector<double> rnd = U(
+		invoke_mod_method(args->mod_i, 2*N, args->mod_args),
+		args->mod_args
+	);
+
+	double S;
+	for(tn i = 0; i < N; i++)
+	{
+		double& a = rnd[2 * i], & b = rnd[2 * i + 1];
+		do
+		{
+			a = 2 * a - sign(a);
+			b = 2 * b - sign(b);
+		} while ((S = a*a + b*b) >= 1);
+
+		S = sqrt(-2 * log(S) / S);
+		a *= S;
+		b *= S;
+	}
+	return rnd;
+}
+
+
+
 int main()
 {
-	vector<double> r = method6(100);
+	vector<double> r = method7(1000);
 
 	printList(r);
-	cout << "\na\n";
-	printHistogram(r, -3, 3);
 
 	//printList(method4(100));
-	//printHistogram(method4(10000), 0, 1);
+	printHistogram(r, -2, 2);
 }
