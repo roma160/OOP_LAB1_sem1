@@ -4,6 +4,10 @@
 #include <map>
 #include <stdio.h>
 #include <cmath>
+#include <math.h>
+
+#define _USE_MATH_DEFINES
+
 
 using namespace std;
 
@@ -357,7 +361,7 @@ vector<double> method8(const tn n, const def_rnd_args* dargs = &m8_p)
 			if (abs(u[j]) <= 1e-20)
 			{
 				restart = true;
-				break;
+				continue;
 			}
 			x = (v[j] - 0.5) * m / u[j];
 
@@ -365,7 +369,7 @@ vector<double> method8(const tn n, const def_rnd_args* dargs = &m8_p)
 			if (x * x >= e4_135 / u[j] + 1.4 || x * x > -4 * log(u[j]))
 			{
 				restart = true;
-				break;
+				continue;
 			}
 		}
 	}
@@ -398,9 +402,63 @@ vector<double> method9(const tn n, const def_rnd_args* dargs = &m9_p)
 	return ret;
 }
 
+struct method10_args : def_rnd_args
+{
+	const double a;
+
+	method10_args(const int mod_i, const def_mod_args* mod_args, const double a) :
+		def_rnd_args(mod_i, mod_args), a(a) {}
+};
+const method10_args m10_p(4, &m4_p, 1);
+vector<double> method10(const tn n, const def_rnd_args* dargs = &m10_p)
+{
+	method10_args args = *(method10_args*)dargs;
+	def_mod_args* args1 = args.mod_args->copy();
+	args.mod_args = args1;
+
+	const double pi = atan(1) * 4;
+	const double& a = args.a;
+	const double sq_a = sqrt(2 * a - 1);
+	const tn buffer_n = 2 * n;
+
+	bool restart;
+	vector<double> ret(n);
+	vector<double> rnd(buffer_n);
+
+	for (tn i = 0; i < n; i++)
+	{
+		double& x = ret[i];
+		restart = true;
+		for (tn j = buffer_n; restart; j += 2)
+		{
+			restart = false;
+			if (j >= buffer_n - 1)
+			{
+				args1->X0 = rnd[buffer_n - 1] * args1->m;
+				rnd = U(
+					invoke_mod_method(args.mod_i, buffer_n, args.mod_args),
+					args.mod_args
+				);
+
+				j = 0;
+			}
+
+			double Y = tan(pi * rnd[j]);
+			double X = sqrt(2 * a - 1) * Y + a - 1;
+			if(X <= 0 || rnd[j+1] > exp((a-1)*log(X/(a-1)) - sq_a*Y) * (1 + Y * Y))
+			{
+				restart = true;
+				continue;
+			}
+			ret[i] = X;
+		}
+	}
+	return ret;
+}
+
 int main()
 {
-	vector<double> r = method9(1000);
+	vector<double> r = method10(1000);
 
 	printList(r);
 
