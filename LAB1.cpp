@@ -375,9 +375,32 @@ vector<double> method8(const tn n, const def_rnd_args* dargs = &m8_p)
 	return ret;
 }
 
+struct method9_args: def_rnd_args
+{
+	const double mu;
+
+	method9_args(const int mod_i, const def_mod_args* mod_args, const double mu) :
+		def_rnd_args(mod_i, mod_args), mu(mu) {}
+};
+const method9_args m9_p(4, &m4_p, 1);
+vector<double> method9(const tn n, const def_rnd_args* dargs = &m9_p)
+{
+	const method9_args* args = (const method9_args*)dargs;
+	vector<double> rnd = U(
+		invoke_mod_method(args->mod_i, n, args->mod_args),
+		args->mod_args
+	);
+
+	const double m = -args->mu;
+
+	vector<double> ret(n);
+	for (tn i = 0; i < n; i++) ret[i] = m * log(rnd[i]);
+	return ret;
+}
+
 int main()
 {
-	vector<double> r = method8(1000);
+	vector<double> r = method9(1000);
 
 	printList(r);
 
