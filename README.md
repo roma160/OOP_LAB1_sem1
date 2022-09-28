@@ -5,7 +5,7 @@
 ### List of primes used
 **Source:** https://www.dcode.fr/prime-numbers-search
 
-**Bounds:** from `4294967230` to `4294967296` ($2^{32}$)
+**Bounds:** from `4294967230` to `4294967296` ($ 2^{32} $)
 
 **List:**
 - 4294967231
