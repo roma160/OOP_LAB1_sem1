@@ -70,7 +70,7 @@ struct def_mod_args
 	virtual def_mod_args* copy() const
 	{ return new def_mod_args(*this); }
 
-	static def_mod_args from_console()
+	static def_mod_args&& from_console()
 	{
 		def_mod_args ret;
 		cout << "Enter X0: ";
@@ -83,7 +83,7 @@ struct def_mod_args
 	}
 };
 vector<tn> invoke_mod_method(int i, tn n, const def_mod_args* args = nullptr);
-def_mod_args* mod_method_from_console();
+void mod_method_from_console(int& i, const def_mod_args*& args);
 
 vector<double> U(const vector<tn> S, const def_mod_args* args)
 {
@@ -261,74 +261,6 @@ vector<tn> method4(const tn n, const def_mod_args* dargs = &m4_p)
 	return ret;
 }
 
-map<int, vector<tuple<string, const def_mod_args*>>> mod_defaults = {
-	{1, {
-		{"m1_31b", &m1_31b},
-		{"m1_32b", &m1_32b},
-		{"m1_p", &m1_p}
-	}},
-	{2, {
-		{"m2_32b", &m2_32b},
-		{"m2_p", &m2_p}
-	}},
-	{3, {
-		{"m3_p", &m3_p}
-	}},
-	{2, {
-		{"m4_32b", &m4_32b},
-		{"m4_p", &m4_p}
-	}},
-};
-
-void mod_method_from_console(int& i, const def_mod_args*& args)
-{
-	i = 0;
-	while (i > 4 || i < 1)
-	{
-		cout << "Enter index of method (from 1 to 4): ";
-		cin >> i;
-	}
-
-	const vector<tuple<string, const def_mod_args*>>& defaults = mod_defaults[i];
-
-	char buff;
-	int di = -1;
-	while (di < 0 || di > defaults.size()) {
-		cout << "Chose one of the presets, or enter own numbers:\n";
-		for (int i = 0; i < defaults.size() - 1; i++)
-			cout << i + 1 << ") " << std::get<0>(defaults[i]) << "\n";
-		cout << defaults.size() << " or d) " << std::get<0>(defaults[defaults.size() - 1]) << "\n";
-		cout << "o) Own numbers\n:";
-		cin >> buff;
-		if (buff == 'd') di = defaults.size() - 1;
-		else if (buff == 'o') di = defaults.size();
-		else di = buff - '1';
-	}
-
-	if (di == defaults.size())
-	{
-		switch (i)
-		{
-		case 1:
-			args = method1_args::from_console();
-			break;
-		case 2:
-			args = method2_args::from_console();
-			break;
-		case 3:
-			args = method3_args::from_console();
-			break;
-		case 4:
-			args = method4_args::from_console();
-			break;
-		default:
-			args = nullptr;
-			break;
-		}
-	}
-	else args = std::get<1>(defaults[i]);
-}
-
 struct method5_args: def_mod_args
 {
 	int method_x_i;
@@ -374,6 +306,80 @@ vector<tn> method5(const tn n, const def_mod_args* dargs = &m5_p)
 	return ret;
 }
 
+map<int, vector<tuple<string, const def_mod_args*>>> mod_defaults = {
+	{1, {
+		{"m1_31b", &m1_31b},
+		{"m1_32b", &m1_32b},
+		{"m1_p", &m1_p}
+	}},
+	{2, {
+		{"m2_32b", &m2_32b},
+		{"m2_p", &m2_p}
+	}},
+	{3, {
+		{"m3_p", &m3_p}
+	}},
+	{4, {
+		{"m4_32b", &m4_32b},
+		{"m4_p", &m4_p}
+	}},
+	{5, {
+		{"m5_p", &m5_p}
+	}},
+};
+
+void mod_method_from_console(int& i, const def_mod_args*& args)
+{
+	i = 0;
+	while (i > 5 || i < 1)
+	{
+		cout << "Enter index of method (from 1 to 5): ";
+		cin >> i;
+	}
+
+	const vector<tuple<string, const def_mod_args*>>& defaults = mod_defaults[i];
+
+	char buff;
+	int di = -1;
+	while (di < 0 || di > defaults.size()) {
+		cout << "Chose one of the presets, or enter own numbers:\n";
+		for (int i = 0; i < defaults.size() - 1; i++)
+			cout << i + 1 << ") " << std::get<0>(defaults[i]) << "\n";
+		cout << defaults.size() << " or d) " << std::get<0>(defaults[defaults.size() - 1]) << "\n";
+		cout << "o) Own numbers\n:";
+		cin >> buff;
+		if (buff == 'd') di = defaults.size() - 1;
+		else if (buff == 'o') di = defaults.size();
+		else di = buff - '1';
+	}
+
+	if (di == defaults.size())
+	{
+		switch (i)
+		{
+		case 1:
+			args = method1_args::from_console();
+			break;
+		case 2:
+			args = method2_args::from_console();
+			break;
+		case 3:
+			args = method3_args::from_console();
+			break;
+		case 4:
+			args = method4_args::from_console();
+			break;
+		case 5:
+			args = method5_args::from_console();
+			break;
+		default:
+			args = nullptr;
+			break;
+		}
+	}
+	else args = std::get<1>(defaults[di]);
+}
+
 vector<tn> invoke_mod_method(int i, tn n, const def_mod_args* args)
 {
 
@@ -404,19 +410,47 @@ vector<tn> invoke_mod_method(int i, tn n, const def_mod_args* args)
 // RND METHODS SECTION
 struct def_rnd_args
 {
-	const int mod_i;
+	int mod_i;
 	const def_mod_args* mod_args;
 
+	def_rnd_args(): mod_i(), mod_args() {}
 	def_rnd_args(const int mod_i, const def_mod_args* mod_args) :
 		mod_i(mod_i), mod_args(mod_args) {}
+
+	virtual ~def_rnd_args()
+	{ delete mod_args; }
+
+	static def_rnd_args&& from_console()
+	{
+		def_rnd_args ret;
+		cout << "Enter method x:\n";
+		mod_method_from_console(ret.mod_i, ret.mod_args);
+
+		return move(ret);
+	}
 };
 
 struct method6_args: def_rnd_args
 {
-	const double m, sigma;
+	double m, sigma;
 
+	method6_args(def_rnd_args&& args) : def_rnd_args(args), m(), sigma() {}
 	method6_args(const int mod_i, const def_mod_args* mod_args, const double m, const double sigma):
 		def_rnd_args(mod_i, mod_args), m(m), sigma(sigma) {}
+
+	static method6_args* from_console()
+	{
+		cout << "Constructing method6 args:\n";
+		method6_args* ret = new method6_args(def_rnd_args::from_console());
+
+		cout << "Enter m: ";
+		cin >> ret->m;
+
+		cout << "Enter sigma: ";
+		cin >> ret->sigma;
+
+		return ret;
+	}
 };
 const method6_args m6_p(4, &m4_p, 0, 1);
 vector<double> method6(const tn n, const def_rnd_args* dargs = &m6_p)
@@ -474,13 +508,25 @@ vector<double> method7(const tn n, const def_rnd_args* dargs = &m7_p)
 
 struct method8_args : def_rnd_args
 {
-	const int mod2_i;
+	int mod2_i;
 	const def_mod_args* mod2_args;
 
+	method8_args(def_rnd_args&& args) : def_rnd_args(args), mod2_i(), mod2_args() {}
 	method8_args(
 		const int mod1_i, const def_mod_args* mod1_args,
 		const int mod2_i, const def_mod_args* mod2_args) :
 		def_rnd_args(mod1_i, mod1_args), mod2_i(mod2_i), mod2_args(mod2_args) {}
+
+	static method8_args* from_console()
+	{
+		cout << "Constructing method8 args:\n";
+		method8_args* ret = new method8_args(def_rnd_args::from_console());
+
+		cout << "Enter method x:\n";
+		mod_method_from_console(ret->mod2_i, ret->mod2_args);
+
+		return ret;
+	}
 };
 const method8_args m8_p(1, &m1_p, 4, &m4_p);
 vector<double> method8(const tn n, const def_rnd_args* dargs = &m8_p)
@@ -546,10 +592,22 @@ vector<double> method8(const tn n, const def_rnd_args* dargs = &m8_p)
 
 struct method9_args: def_rnd_args
 {
-	const double mu;
+	double mu;
 
+	method9_args(def_rnd_args&& args) : def_rnd_args(args), mu() {}
 	method9_args(const int mod_i, const def_mod_args* mod_args, const double mu) :
 		def_rnd_args(mod_i, mod_args), mu(mu) {}
+
+	static method9_args* from_console()
+	{
+		cout << "Constructing method9 args:\n";
+		method9_args* ret = new method9_args(def_rnd_args::from_console());
+
+		cout << "Enter mu: ";
+		cin >> ret->mu;
+
+		return ret;
+	}
 };
 const method9_args m9_p(4, &m4_p, 1);
 vector<double> method9(const tn n, const def_rnd_args* dargs = &m9_p)
@@ -569,10 +627,22 @@ vector<double> method9(const tn n, const def_rnd_args* dargs = &m9_p)
 
 struct method10_args : def_rnd_args
 {
-	const double a;
+	double a;
 
+	method10_args(def_rnd_args&& args) : def_rnd_args(args), a() {}
 	method10_args(const int mod_i, const def_mod_args* mod_args, const double a) :
 		def_rnd_args(mod_i, mod_args), a(a) {}
+
+	static method10_args* from_console()
+	{
+		cout << "Constructing method10 args:\n";
+		method10_args* ret = new method10_args(def_rnd_args::from_console());
+
+		cout << "Enter a: ";
+		cin >> ret->a;
+
+		return ret;
+	}
 };
 const method10_args m10_p(4, &m4_p, 1);
 vector<double> method10(const tn n, const def_rnd_args* dargs = &m10_p)
@@ -621,12 +691,152 @@ vector<double> method10(const tn n, const def_rnd_args* dargs = &m10_p)
 	return ret;
 }
 
+map<int, vector<tuple<string, const void*>>> all_defaults = {
+	{1, {
+		{"m1_31b", &m1_31b},
+		{"m1_32b", &m1_32b},
+		{"m1_p", &m1_p}
+	}},
+	{2, {
+		{"m2_32b", &m2_32b},
+		{"m2_p", &m2_p}
+	}},
+	{3, {
+		{"m3_p", &m3_p}
+	}},
+	{4, {
+		{"m4_32b", &m4_32b},
+		{"m4_p", &m4_p}
+	}},
+	{5, {
+		{"m5_p", &m5_p}
+	}},
+	{6, {
+		{"m6_p", &m6_p}
+	}},
+	{7, {
+		{"m7_p", &m7_p}
+	}},
+	{8, {
+		{"m8_p", &m8_p}
+	}},
+	{9, {
+		{"m9_p", &m9_p}
+	}},
+	{10, {
+		{"m10_p", &m10_p}
+	}},
+};
+
+
 int main()
 {
-	vector<double> r = method10(1000);
+	while(true)
+	{
+		char buff;
+		int i = -1, n;
+		const void* args;
+		while (i > 10 || i < 0)
+		{
+			cout << "Enter index of method (from 1 to 10 or q): ";
+			cin >> buff;
+			if (buff == 'q') i = 0;
+			else i = buff - '0';
+		}
+		if (i == 0) break;
 
-	printList(r);
+		const vector<tuple<string, const void*>>& defaults = all_defaults[i];
+		
+		int di = -1;
+		while (di < 0 || di > defaults.size()) {
+			cout << "Chose one of the presets, or enter own numbers:\n";
+			for (int i = 0; i < defaults.size() - 1; i++)
+				cout << i + 1 << ") " << std::get<0>(defaults[i]) << "\n";
+			cout << defaults.size() << " or d) " << std::get<0>(defaults[defaults.size() - 1]) << "\n";
+			cout << "o) Own numbers\n:";
+			cin >> buff;
+			if (buff == 'd') di = defaults.size() - 1;
+			else if (buff == 'o') di = defaults.size();
+			else di = buff - '1';
+		}
 
-	//printList(method4(100));
-	printHistogram(r, -2, 2);
+		if (di == defaults.size())
+		{
+			switch (i)
+			{
+			case 1:
+				args = method1_args::from_console();
+				break;
+			case 2:
+				args = method2_args::from_console();
+				break;
+			case 3:
+				args = method3_args::from_console();
+				break;
+			case 4:
+				args = method4_args::from_console();
+				break;
+			case 5:
+				args = method5_args::from_console();
+				break;
+			case 6:
+				args = method6_args::from_console();
+				break;
+			case 7:
+				args = new def_rnd_args(def_rnd_args::from_console());
+				break;
+			case 8:
+				args = method8_args::from_console();
+				break;
+			case 9:
+				args = method9_args::from_console();
+				break;
+			case 10:
+				args = method10_args::from_console();
+				break;
+			default:
+				args = nullptr;
+				break;
+			}
+		}
+		else args = std::get<1>(defaults[di]);
+
+		cout << "Enter number of elements: ";
+		cin >> n;
+
+		if (i <= 5)
+		{
+			def_mod_args* a = (def_mod_args*)args;
+			vector<double> to_show = U(
+				invoke_mod_method(i, n, a), a);
+			printHistogram(to_show, 0, 1);
+		}
+		else
+		{
+			def_rnd_args* a = (def_rnd_args*)args;
+			vector<double> to_show;
+			switch (i)
+			{
+			case 6:
+				to_show = method6(n, a);
+				break;
+			case 7:
+				to_show = method7(n, a);
+				break;
+			case 8:
+				to_show = method8(n, a);
+				break;
+			case 9:
+				to_show = method9(n, a);
+				break;
+			case 10:
+				to_show = method10(n, a);
+				break;
+			default:
+				to_show = vector<double>();
+				break;
+			}
+			printHistogram(to_show, -3, 3);
+		}
+	}
 }
