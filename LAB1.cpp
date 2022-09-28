@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <cmath>
 #include <math.h>
+#include <string>
 
 #define _USE_MATH_DEFINES
 
@@ -70,7 +71,7 @@ struct def_mod_args
 	virtual def_mod_args* copy() const
 	{ return new def_mod_args(*this); }
 
-	static def_mod_args&& from_console()
+	static def_mod_args from_console()
 	{
 		def_mod_args ret;
 		cout << "Enter X0: ";
@@ -79,7 +80,7 @@ struct def_mod_args
 		cout << "Enter m: ";
 		cin >> ret.m;
 
-		return move(ret);
+		return ret;
 	}
 };
 vector<tn> invoke_mod_method(int i, tn n, const def_mod_args* args = nullptr);
@@ -97,7 +98,7 @@ vector<double> U(const vector<tn> S, const def_mod_args* args)
 struct method1_args : def_mod_args
 {
 	tn c, a;
-	method1_args(def_mod_args&& def) : def_mod_args(def), c(), a() {}
+	method1_args(def_mod_args def) : def_mod_args(def), c(), a() {}
 	method1_args(const tn X0, const tn m, const tn c, const tn a) :
 		def_mod_args(X0, m), c(c), a(a) {}
 
@@ -134,7 +135,7 @@ vector<tn> method1(const tn n, const def_mod_args* dargs = &m1_p)
 struct method2_args: def_mod_args
 {
 	tn c, d, a;
-	method2_args(def_mod_args&& def): def_mod_args(def), c(), d(), a() {}
+	method2_args(def_mod_args def): def_mod_args(def), c(), d(), a() {}
 	method2_args(const tn X0, const tn m, const tn c, const tn d, const tn a) :
 		def_mod_args(X0, m), c(c), d(d), a(a) {}
 
@@ -177,7 +178,7 @@ vector<tn> method2(const tn n, const def_mod_args* dargs = &m2_p)
 struct method3_args : def_mod_args
 {
 	tn X1;
-	method3_args(def_mod_args&& def) : def_mod_args(def), X1() {}
+	method3_args(def_mod_args def) : def_mod_args(def), X1() {}
 	method3_args(const tn X0, const tn X1, const tn m) :
 		def_mod_args(X0, m), X1(X1) {}
 
@@ -228,7 +229,7 @@ tn inverse(tn x, tn m)
 struct method4_args: def_mod_args
 {
 	tn c, a;
-	method4_args(def_mod_args&& def) : def_mod_args(def), c(), a() {}
+	method4_args(def_mod_args def) : def_mod_args(def), c(), a() {}
 	method4_args(const tn X0, const tn m, const tn c, const tn a) :
 		def_mod_args(X0, m), c(c), a(a) {}
 
@@ -269,7 +270,7 @@ struct method5_args: def_mod_args
 	int method_y_i;
 	const def_mod_args* y_args;
 
-	method5_args(def_mod_args&& def) : def_mod_args(def), method_x_i(), x_args(), method_y_i(), y_args() {}
+	method5_args(def_mod_args def) : def_mod_args(def), method_x_i(), x_args(), method_y_i(), y_args() {}
 	method5_args(const tn m, const int method_x_i, const def_mod_args* x_args,
 			const int method_y_i, const def_mod_args* y_args) :
 		def_mod_args(-1, m), method_x_i(method_x_i), x_args(x_args), method_y_i(method_y_i), y_args(y_args) {}
@@ -414,19 +415,27 @@ struct def_rnd_args
 	const def_mod_args* mod_args;
 
 	def_rnd_args(): mod_i(), mod_args() {}
+	def_rnd_args(const def_rnd_args& args)
+	{
+		mod_i = args.mod_i;
+		mod_args = args.mod_args;
+	}
+	def_rnd_args(def_rnd_args&& args) noexcept
+	{
+		mod_i = args.mod_i;
+		mod_args = args.mod_args;
+		args.mod_args = nullptr;
+	}
 	def_rnd_args(const int mod_i, const def_mod_args* mod_args) :
 		mod_i(mod_i), mod_args(mod_args) {}
 
-	virtual ~def_rnd_args()
-	{ delete mod_args; }
-
-	static def_rnd_args&& from_console()
+	static def_rnd_args* from_console()
 	{
-		def_rnd_args ret;
+		def_rnd_args* ret = new def_rnd_args();
 		cout << "Enter method x:\n";
-		mod_method_from_console(ret.mod_i, ret.mod_args);
+		mod_method_from_console(ret->mod_i, ret->mod_args);
 
-		return move(ret);
+		return ret;
 	}
 };
 
@@ -434,14 +443,14 @@ struct method6_args: def_rnd_args
 {
 	double m, sigma;
 
-	method6_args(def_rnd_args&& args) : def_rnd_args(args), m(), sigma() {}
+	method6_args(def_rnd_args&& args) : def_rnd_args(move(args)), m(), sigma() {}
 	method6_args(const int mod_i, const def_mod_args* mod_args, const double m, const double sigma):
 		def_rnd_args(mod_i, mod_args), m(m), sigma(sigma) {}
 
 	static method6_args* from_console()
 	{
 		cout << "Constructing method6 args:\n";
-		method6_args* ret = new method6_args(def_rnd_args::from_console());
+		method6_args* ret = new method6_args(move(*def_rnd_args::from_console()));
 
 		cout << "Enter m: ";
 		cin >> ret->m;
@@ -511,7 +520,7 @@ struct method8_args : def_rnd_args
 	int mod2_i;
 	const def_mod_args* mod2_args;
 
-	method8_args(def_rnd_args&& args) : def_rnd_args(args), mod2_i(), mod2_args() {}
+	method8_args(def_rnd_args&& args) : def_rnd_args(move(args)), mod2_i(), mod2_args() {}
 	method8_args(
 		const int mod1_i, const def_mod_args* mod1_args,
 		const int mod2_i, const def_mod_args* mod2_args) :
@@ -520,7 +529,7 @@ struct method8_args : def_rnd_args
 	static method8_args* from_console()
 	{
 		cout << "Constructing method8 args:\n";
-		method8_args* ret = new method8_args(def_rnd_args::from_console());
+		method8_args* ret = new method8_args(move(*def_rnd_args::from_console()));
 
 		cout << "Enter method x:\n";
 		mod_method_from_console(ret->mod2_i, ret->mod2_args);
@@ -601,7 +610,7 @@ struct method9_args: def_rnd_args
 	static method9_args* from_console()
 	{
 		cout << "Constructing method9 args:\n";
-		method9_args* ret = new method9_args(def_rnd_args::from_console());
+		method9_args* ret = new method9_args(move(*def_rnd_args::from_console()));
 
 		cout << "Enter mu: ";
 		cin >> ret->mu;
@@ -636,7 +645,7 @@ struct method10_args : def_rnd_args
 	static method10_args* from_console()
 	{
 		cout << "Constructing method10 args:\n";
-		method10_args* ret = new method10_args(def_rnd_args::from_console());
+		method10_args* ret = new method10_args(move(*def_rnd_args::from_console()));
 
 		cout << "Enter a: ";
 		cin >> ret->a;
@@ -733,15 +742,15 @@ int main()
 {
 	while(true)
 	{
-		char buff;
+		string buff;
 		int i = -1, n;
 		const void* args;
 		while (i > 10 || i < 0)
 		{
 			cout << "Enter index of method (from 1 to 10 or q): ";
 			cin >> buff;
-			if (buff == 'q') i = 0;
-			else i = buff - '0';
+			if (buff == "q") i = 0;
+			else i = stoi(buff);
 		}
 		if (i == 0) break;
 
@@ -755,9 +764,9 @@ int main()
 			cout << defaults.size() << " or d) " << std::get<0>(defaults[defaults.size() - 1]) << "\n";
 			cout << "o) Own numbers\n:";
 			cin >> buff;
-			if (buff == 'd') di = defaults.size() - 1;
-			else if (buff == 'o') di = defaults.size();
-			else di = buff - '1';
+			if (buff == "d") di = defaults.size() - 1;
+			else if (buff == "o") di = defaults.size();
+			else di = stoi(buff) - 1;
 		}
 
 		if (di == defaults.size())
@@ -783,7 +792,7 @@ int main()
 				args = method6_args::from_console();
 				break;
 			case 7:
-				args = new def_rnd_args(def_rnd_args::from_console());
+				args = new def_rnd_args(move(*def_rnd_args::from_console()));
 				break;
 			case 8:
 				args = method8_args::from_console();
