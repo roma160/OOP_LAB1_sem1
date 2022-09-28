@@ -1,11 +1,10 @@
+#include <cmath>
+#include <cmath>
 #include <iomanip>
 #include <iostream>
-#include <vector>
 #include <map>
-#include <stdio.h>
-#include <cmath>
-#include <math.h>
 #include <string>
+#include <vector>
 
 #define _USE_MATH_DEFINES
 
@@ -16,7 +15,6 @@ typedef long long tn;
 
 
 // PRINTING METHODS SECTION
-
 void printList(const vector<double>& numbers)
 {
 	constexpr int precision = 4;
@@ -56,10 +54,48 @@ void printHistogram(const vector<double>& numbers, double start, double stopExcl
 		cout << (double)buff / l << "\n";
 	}
 }
-
+double getDouble(const char* prompt)
+{
+	double ret;
+	string buff;
+	while(true)
+	{
+		cout << prompt;
+		cin >> buff;
+		try
+		{
+			ret = stod(buff);
+			break;
+		}
+		catch (exception&)
+		{
+			cout << "Invalid number, retry please!\n";
+		}
+	}
+	return ret;
+}
+tn getTn(const char* prompt)
+{
+	tn ret;
+	string buff;
+	while (true)
+	{
+		cout << prompt;
+		cin >> buff;
+		try
+		{
+			ret = stoll(buff);
+			break;
+		}
+		catch (exception&)
+		{
+			cout << "Invalid number, retry please!\n";
+		}
+	}
+	return ret;
+}
 
 // MOD METHODS SECTION
-
 struct def_mod_args
 {
 	virtual ~def_mod_args() = default;
@@ -74,12 +110,8 @@ struct def_mod_args
 	static def_mod_args from_console()
 	{
 		def_mod_args ret;
-		cout << "Enter X0: ";
-		cin >> ret.X0;
-
-		cout << "Enter m: ";
-		cin >> ret.m;
-
+		ret.X0 = getTn("Enter X0: ");
+		ret.m = getTn("Enter m: ");
 		return ret;
 	}
 };
@@ -94,6 +126,15 @@ vector<double> U(const vector<tn> S, const def_mod_args* args)
 		ret[i] = (double)S[i] / (args->m-1);
 	return ret;
 }
+
+tn gcd(tn a, tn b)
+{
+	if (a < b) return gcd(b, a);
+	if (b == 0) return a;
+	return gcd(b, a % b);
+}
+
+vector<tn> primes = { 2, 3, 5, 7 };
 
 struct method1_args : def_mod_args
 {
@@ -110,11 +151,38 @@ struct method1_args : def_mod_args
 		cout << "Constructing method1 args:\n";
 
 		method1_args* ret = new method1_args(def_mod_args::from_console());
-		cout << "Enter c: ";
-		cin >> ret->c;
+		
+		while(true){
+			ret->c = getTn("Enter c: ");
+			ret->a = getTn("Enter a: ");
 
-		cout << "Enter a: ";
-		cin >> ret->a;
+			if (gcd(ret->c, ret->m) == 1)
+				break;
+			if(ret->m % 4 == 0)
+				if((ret->a - 1) % 4 != 0)
+					continue;
+
+			const tn boundary = ret->m / 2 + 1;
+			if(primes[primes.size() - 1] < boundary)
+			{
+				for(tn p = primes[primes.size() - 1] + 2; true; p += 2)
+				{
+					bool prime = true;
+					for (tn i = 0; i < primes.size() && prime; i++)
+						prime = p % primes[i] != 0;
+					if (prime) {
+						primes.push_back(p);
+						if(p > boundary) break;
+					}
+				}
+			}
+
+			bool ok = true;
+			for (tn i = 0; primes[i] < boundary && ok; i++)
+				if (ret->m % primes[i] == 0)
+					ok = (ret->a - 1) % primes[i] == 0;
+			if(ok) break;
+		}
 
 		return ret;
 	}
@@ -147,14 +215,9 @@ struct method2_args: def_mod_args
 		cout << "Constructing method2 args:\n";
 
 		method2_args* ret = new method2_args(def_mod_args::from_console());
-		cout << "Enter c: ";
-		cin >> ret->c;
-
-		cout << "Enter d: ";
-		cin >> ret->d;
-
-		cout << "Enter a: ";
-		cin >> ret->a;
+		ret->c = getTn("Enter c: ");
+		ret->d = getTn("Enter d: ");
+		ret->a = getTn("Enter a: ");
 
 		return ret;
 	}
@@ -190,9 +253,7 @@ struct method3_args : def_mod_args
 		cout << "Constructing method3 args:\n";
 
 		method3_args* ret = new method3_args(def_mod_args::from_console());
-
-		cout << "Enter X1: ";
-		cin >> ret->X1;
+		ret->X1 = getTn("Enter X1: ");
 
 		return ret;
 	}
@@ -241,11 +302,8 @@ struct method4_args: def_mod_args
 		cout << "Constructing method1 args:\n";
 
 		method4_args* ret = new method4_args(def_mod_args::from_console());
-		cout << "Enter c: ";
-		cin >> ret->c;
-
-		cout << "Enter a: ";
-		cin >> ret->a;
+		ret->c = getTn("Enter c: ");
+		ret->a = getTn("Enter a: ");
 
 		return ret;
 	}
@@ -452,11 +510,8 @@ struct method6_args: def_rnd_args
 		cout << "Constructing method6 args:\n";
 		method6_args* ret = new method6_args(move(*def_rnd_args::from_console()));
 
-		cout << "Enter m: ";
-		cin >> ret->m;
-
-		cout << "Enter sigma: ";
-		cin >> ret->sigma;
+		ret->m = getDouble("Enter m: ");
+		ret->sigma = getDouble("Enter sigma: ");
 
 		return ret;
 	}
@@ -612,13 +667,12 @@ struct method9_args: def_rnd_args
 		cout << "Constructing method9 args:\n";
 		method9_args* ret = new method9_args(move(*def_rnd_args::from_console()));
 
-		cout << "Enter mu: ";
-		cin >> ret->mu;
+		ret->mu = getDouble("Enter mu: ");
 
 		return ret;
 	}
 };
-const method9_args m9_p(4, &m4_p, 1);
+const method9_args m9_p(4, &m4_p, 20);
 vector<double> method9(const tn n, const def_rnd_args* dargs = &m9_p)
 {
 	const method9_args* args = (const method9_args*)dargs;
@@ -647,8 +701,7 @@ struct method10_args : def_rnd_args
 		cout << "Constructing method10 args:\n";
 		method10_args* ret = new method10_args(move(*def_rnd_args::from_console()));
 
-		cout << "Enter a: ";
-		cin >> ret->a;
+		ret->a = getDouble("Enter a: ");
 
 		return ret;
 	}
@@ -743,14 +796,18 @@ int main()
 	while(true)
 	{
 		string buff;
-		int i = -1, n;
+		int i = -1;
+		tn n;
 		const void* args;
 		while (i > 10 || i < 0)
 		{
 			cout << "Enter index of method (from 1 to 10 or q): ";
 			cin >> buff;
 			if (buff == "q") i = 0;
-			else i = stoi(buff);
+			else {
+				try{ i = stoi(buff); }
+				catch (exception&) { i = -1; }
+			}
 		}
 		if (i == 0) break;
 
@@ -766,7 +823,11 @@ int main()
 			cin >> buff;
 			if (buff == "d") di = defaults.size() - 1;
 			else if (buff == "o") di = defaults.size();
-			else di = stoi(buff) - 1;
+			else
+			{
+				try { di = stoi(buff) - 1; }
+				catch (exception&) { di = -1; }
+			};
 		}
 
 		if (di == defaults.size())
@@ -810,8 +871,7 @@ int main()
 		}
 		else args = std::get<1>(defaults[di]);
 
-		cout << "Enter number of elements: ";
-		cin >> n;
+		n = getTn("Enter number of elements: ");
 
 		if (i <= 5)
 		{
@@ -845,7 +905,11 @@ int main()
 				to_show = vector<double>();
 				break;
 			}
-			printHistogram(to_show, -3, 3);
+
+			if(i <= 8)
+				printHistogram(to_show, -3, 3);
+			else
+				printHistogram(to_show, 0, 100);
 		}
 	}
 }
