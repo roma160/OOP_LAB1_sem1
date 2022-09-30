@@ -135,6 +135,22 @@ tn gcd(tn a, tn b)
 }
 
 vector<tn> primes = { 2, 3, 5, 7 };
+void extend_primes(const tn boundary)
+{
+	if (primes[primes.size() - 1] >= boundary)
+		return;
+
+	for (tn p = primes[primes.size() - 1] + 2; true; p += 2)
+	{
+		bool prime = true;
+		for (tn i = 0; i < primes.size() && prime; i++)
+			prime = p % primes[i] != 0;
+		if (prime) {
+			primes.push_back(p);
+			if (p > boundary) break;
+		}
+	}
+}
 
 struct method1_args : def_mod_args
 {
@@ -163,19 +179,7 @@ struct method1_args : def_mod_args
 					continue;
 
 			const tn boundary = ret->m / 2 + 1;
-			if(primes[primes.size() - 1] < boundary)
-			{
-				for(tn p = primes[primes.size() - 1] + 2; true; p += 2)
-				{
-					bool prime = true;
-					for (tn i = 0; i < primes.size() && prime; i++)
-						prime = p % primes[i] != 0;
-					if (prime) {
-						primes.push_back(p);
-						if(p > boundary) break;
-					}
-				}
-			}
+			extend_primes(boundary);
 
 			bool ok = true;
 			for (tn i = 0; primes[i] < boundary && ok; i++)
@@ -215,6 +219,41 @@ struct method2_args: def_mod_args
 		cout << "Constructing method2 args:\n";
 
 		method2_args* ret = new method2_args(def_mod_args::from_console());
+
+		while (true) {
+			ret->c = getTn("Enter c: ");
+			ret->d = getTn("Enter d: ");
+			ret->a = getTn("Enter a: ");
+
+			if (gcd(ret->c, ret->m) == 1)
+				break;
+
+			if (ret->m % 4 == 0) {
+				if (ret->d % 2 != 0 || (ret->a - 1) % 4 != ret->d % 4)
+					continue;
+			}
+			else if(ret->m % 2 == 0)
+			{
+				if ((ret->a - 1) % 4 != ret->d % 4)
+					continue;
+			}
+
+			if(ret->m % 3 == 0)
+			{
+				if(ret->d % 9 == (3*ret->c) % 9)
+					continue;
+			}
+
+			const tn boundary = ret->m / 2 + 1;
+			extend_primes(boundary);
+
+			bool ok = true;
+			for (tn i = 0; primes[i] < boundary && ok; i++)
+				if (ret->m % primes[i] == 0)
+					ok = (ret->a - 1) % primes[i] == 0 && ret->d % primes[i] == 0;
+			if (ok) break;
+		}
+
 		ret->c = getTn("Enter c: ");
 		ret->d = getTn("Enter d: ");
 		ret->a = getTn("Enter a: ");
@@ -302,8 +341,17 @@ struct method4_args: def_mod_args
 		cout << "Constructing method1 args:\n";
 
 		method4_args* ret = new method4_args(def_mod_args::from_console());
-		ret->c = getTn("Enter c: ");
-		ret->a = getTn("Enter a: ");
+
+		while(true){
+			ret->c = getTn("Enter c: ");
+			ret->a = getTn("Enter a: ");
+
+			if((ret->m & ret->m - 1) == 0)
+				break;
+
+			if(ret->a % 4 != 1 || ret->c % 4 != 2)
+				continue;
+		}
 
 		return ret;
 	}
