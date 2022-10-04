@@ -921,17 +921,17 @@ int main()
 
 		n = getTn("Enter number of elements: ");
 
+		vector<double> to_show;
 		if (i <= 5)
 		{
 			def_mod_args* a = (def_mod_args*)args;
-			vector<double> to_show = U(
+			to_show = U(
 				invoke_mod_method(i, n, a), a);
 			printHistogram(to_show, 0, 1);
 		}
 		else
 		{
 			def_rnd_args* a = (def_rnd_args*)args;
-			vector<double> to_show;
 			switch (i)
 			{
 			case 6:
@@ -959,5 +959,9 @@ int main()
 			else
 				printHistogram(to_show, 0, 100);
 		}
+
+#ifdef _DEBUG
+		printList(to_show);
+#endif
 	}
 }
