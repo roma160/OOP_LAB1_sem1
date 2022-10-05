@@ -114,6 +114,9 @@ struct def_mod_args
 		ret.m = getTn("Enter m: ");
 		return ret;
 	}
+
+	static void printInvalidArgsMessage()
+	{ cout << "Some of the arguments, you entered, are invalid. Retry please!\n"; }
 };
 vector<tn> invoke_mod_method(int i, tn n, const def_mod_args* args = nullptr);
 void mod_method_from_console(int& i, const def_mod_args*& args);
@@ -186,6 +189,8 @@ struct method1_args : def_mod_args
 				if (ret->m % primes[i] == 0)
 					ok = (ret->a - 1) % primes[i] == 0;
 			if(ok) break;
+
+			printInvalidArgsMessage();
 		}
 
 		return ret;
@@ -252,6 +257,8 @@ struct method2_args: def_mod_args
 				if (ret->m % primes[i] == 0)
 					ok = (ret->a - 1) % primes[i] == 0 && ret->d % primes[i] == 0;
 			if (ok) break;
+
+			printInvalidArgsMessage();
 		}
 
 		ret->c = getTn("Enter c: ");
@@ -346,11 +353,13 @@ struct method4_args: def_mod_args
 			ret->c = getTn("Enter c: ");
 			ret->a = getTn("Enter a: ");
 
-			if((ret->m & ret->m - 1) == 0)
-				break;
+			if ((ret->m & ret->m - 1) == 0) {
+				if (ret->a % 4 == 1 && ret->c % 4 == 2)
+					break;
+			}
+			else break;
 
-			if(ret->a % 4 != 1 || ret->c % 4 != 2)
-				continue;
+			printInvalidArgsMessage();
 		}
 
 		return ret;
@@ -754,7 +763,7 @@ struct method10_args : def_rnd_args
 		return ret;
 	}
 };
-const method10_args m10_p(4, &m4_p, 1);
+const method10_args m10_p(4, &m4_p, 17);
 vector<double> method10(const tn n, const def_rnd_args* dargs = &m10_p)
 {
 	method10_args args = *(method10_args*)dargs;
@@ -772,7 +781,6 @@ vector<double> method10(const tn n, const def_rnd_args* dargs = &m10_p)
 
 	for (tn i = 0; i < n; i++)
 	{
-		double& x = ret[i];
 		restart = true;
 		for (tn j = buffer_n; restart; j += 2)
 		{
